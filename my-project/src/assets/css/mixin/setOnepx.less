@@ -1,0 +1,52 @@
+.setTopLine(@c: #e2e2e2) {
+    position: relative;
+    z-index:1;
+    &:after{
+        content: " ";
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        height: 1px;
+        border-top: 1rpx solid @c;
+        color: @c;
+    }
+}
+
+.setBottomLine(@c: #e2e2e2) {
+    position: relative;
+    z-index:1;
+    &:after{
+        content: " ";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        height: 1px;
+        border-bottom: 1rpx solid @c;
+        color: @c;
+    }
+
+}
+
+.setLeftLine(@c: #e2e2e2) {
+    content: " ";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    bottom: 0;
+    border-left: 1rpx solid @c;
+    color: @c;
+}
+
+.setRightLine(@c: #e2e2e2) {
+    content: " ";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 1px;
+    bottom: 0;
+    border-right: 1rpx solid @c;
+    color: @c;
+}

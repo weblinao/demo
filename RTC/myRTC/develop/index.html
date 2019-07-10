@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="./css/index.min.css">
+  <title>myRTC</title>
+</head>
+<body>
+  <h1 class="title">WebRTC sample <span>MyRTC</span></h1>
+  <div id="videos">
+    <!-- 自己的窗口 -->
+    <div class="video-box me">
+      <h3>Me</h3>
+      <div class="video-btns">
+        <!-- 视频区域 -->
+        <video id="me" autoplay></video>
+        <!-- 操作区域 -->
+        <div class="operating-area">
+          <div class="btns">
+            <button id="noServer">无服务器</button>
+            <button id="withServer">使用服务器</button>
+            <br>
+            <button id="start" disabled="disabled" class="disabled">Start</button>
+            <button id="call" disabled="disabled" class="disabled">Call</button>
+            <button id="hangUp" disabled="disabled" class="disabled">Hang Up</button>
+          </div>
+          <div class="send-msg">
+            <input id='msg' type="text" name="txtMsg">
+            <button id="broadcast" disabled="disabled" class="send-btn disabled">Broadcast</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>  
+    <!-- 其他人的窗口 -->
+    <!-- <div class="video-box other">
+      <h3>Other</h3>
+      <div class="video-btns">
+        <video id="other" autoplay></video>
+      </div>
+    </div> -->
+  </div>
+  <!-- <div id="files">
+  </div> -->
+  <script src="./js/jquery-3.2.1.min.js"></script>
+  <script src="./js/RTCInOnePage.js"></script>
+  <script src="./js/myRTC.js" type="text/javascript"></script>
+  <script>
+    var $btnNoServer = $('#noServer');
+    var $btnServer = $('#withServer');
+    var isUseServer = false;  // 默认不使用服务器，在本页上通讯
+
+    var NEW_ADDER = '<div class="video-box other">'+
+                        '<h3>Other</h3>'+
+                        '<div class="video-btns">'+
+                            '<video id="other" autoplay></video>'+
+                        '</div>'+
+                    '</div>';
+
+    $btnNoServer.on('click', function(){
+      $btnNoServer.attr('disabled', 'disabled').addClass('disabled');
+      $btnServer.attr('disabled', 'disabled').addClass('disabled');
+
+      isUseServer = false;
+
+      var jNewAdder = $(NEW_ADDER);
+      $('#videos').append(jNewAdder);
+
+      btnInit();
+      noServerInit();
+    });
+    $btnServer.on('click', function(){
+      $btnNoServer.attr('disabled', 'disabled').addClass('disabled');
+      $btnServer.attr('disabled', 'disabled').addClass('disabled');
+
+      isUseServer = true;
+      btnInit();
+      withServerInit();
+    });
+
+    var $btnStart  = $('#start'); // 开始按钮
+    var $btnCall   = $('#call');  // 拨打按钮
+    var $btnHangUp = $('#hangUp');// 挂断按钮
+    var $btnBroadcast   = $('#broadcast');  // 发送消息按钮
+
+    function btnInit(){
+      $btnStart.removeAttr('disabled').removeClass('disabled');
+      $btnCall.attr('disabled', 'disabled').addClass('disabled');
+      $btnHangUp.attr('disabled', 'disabled').addClass('disabled');
+      $btnBroadcast.attr('disabled', 'disabled').addClass('disabled');
+    }
+
+      
+    // 使用服务器初始化
+    function withServerInit(){
+      var rtc     = new myRTC();
+      var $videos = $('#videos');
+      var $me     = $('#me');
+      var $bctMsg = $('#msg');
+      var me      = $me[0];
+
+      // 开始事件
+      $btnStart.on('click', function(){
+        console.log('start');
+        $(this).attr('disabled', 'disabled').addClass('disabled');
+        // 链接服务器
+        rtc.connect("ws://" + serverUrl, room);
+      });
+      // 拨打事件
+      $btnCall.on('click', function(){
+        console.log('call');
+      });
+      // 挂断事件
+      $btnHangUp.on('click', function(){
+        console.log('hangUp');
+      });
+      // 广播消息事件
+      $btnBroadcast.on('click', function(){
+        var message = $bctMsg.val();
+        if(!!message){
+          rtc.broadcast(message);
+          console.log("broadcast");
+        }else{
+          alert('No data to broadcast');
+        }
+      });
+
+      // rtc.on("_say_hello", function(data){
+      //   console.log("hello + " + data);
+      // });
+      // 创建本地流成功
+      rtc.on("stream_create_success", function(stream){
+        if(me.srcObject == null){
+          me.srcObject = stream;
+        }else{
+          var URL = (window.URL || window.webkitURL || window.msURL || window.oURL);
+          // 这个方法正在被废弃，能不用就不用
+          me.src = URL.createObjectURL(stream);
+        }
+        me.play();
+        // 获得本地视频流，call按钮激活
+        $btnCall.removeAttr('disabled').removeClass('disabled');
+        $btnBroadcast.removeAttr('disabled').removeClass('disabled');
+      });
+      // 创建本地流失败
+      rtc.on("stream_create_failed", function(){
+        alert("create stream failed!");
+      });
+      // 链接到websocket成功
+      rtc.on("connected", function(socket){
+        // 标记自己的ID
+        var $MyTitle = $('.me>h3');
+        $MyTitle.html( $MyTitle.html() + " : " + rtc.me );
+        // 创建本地流
+        rtc.createLocalStream({
+          video: true,
+          audio: false
+        }, "stream_create_success", "stream_create_failed");
+      });
+      // 接收到其它用户的视频流
+      rtc.on("pc_add_stream", function(stream, socketId){
+        var jNewAdder = $(NEW_ADDER);
+
+        jNewAdder.find('video').attr('id', socketId);
+        jNewAdder.find('h3').html('Other : ' + socketId);
+
+        $videos.append(jNewAdder);
+
+        rtc.attachStream(stream, socketId);
+        console.log("attach stream end");
+      });
+      //删除其他用户
+      rtc.on('remove_peer', function(socketId) {
+        var $videoBox = $('#' + socketId);
+        if($videoBox){
+          $videoBox.parent().parent().remove();
+        }
+
+        console.log("用户"+ socketId + "离开");
+      });
+      
+      // 服务器地址，不要带上http
+      var serverUrl = "192.168.110.50:3000";
+      // 获取房间号，如果没有则默认进入0号房间
+      var room = window.location.hash.slice(1) || "__default";
+      // rtc.connect("ws://" + serverUrl, room);
+    }
+    
+
+  </script>
+</body>
+</html>

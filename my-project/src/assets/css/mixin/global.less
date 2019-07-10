@@ -1,0 +1,211 @@
+@import "setArrow";
+@import "setOnepx";
+@import "text";
+
+/* 通用模块组件 */
+/* border 1px */
+.half-border(top, @border-color:#dcdedf){
+    &:after{
+        border-top-width: 1px !important;
+    }
+}
+.half-border(right, @border-color:#dcdedf){
+    &:after{
+        border-right-width: 1px !important;
+    }
+}
+.half-border(bottom, @border-color:#dcdedf){
+    &:after{
+        border-bottom-width: 1px !important;
+    }
+}
+.half-border(left, @border-color:#dcdedf){
+    &:after{
+        border-left-width: 1px !important;
+    }
+}
+.half-border(all, @border-color:#dcdedf, @border-radius:0px, @bg-color: transparent){
+    &:after{
+        border-width: 1px !important;
+    }
+}
+.half-border(@_, @border-color:#dcdedf, @border-radius:0px, @bg-color: transparent){
+    position: relative;
+    z-index: 1;
+    &:after{
+        z-index: -1;
+        box-sizing: border-box;
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 200%;
+        height: 200%;
+        background-color: @bg-color;
+        transform: scale(0.5,0.5);
+        -webkit-transform: scale(0.5,0.5);
+        border-radius: @border-radius * 2;
+        border-style: solid;
+        border-color: @border-color;
+        border-width: 0 0 0 0;
+        transform-origin: top left;
+        -webkit-transform-origin: top left;
+    }
+}
+
+//盒子布局
+.display-box(@orient: horizontal){
+    display: flex;
+    -moz-box-orient: @orient;
+    -webkit-box-orient: @orient;
+}
+.compatibility-container() {
+    .display-box();
+    width: 100%;
+}
+.box-flex(@flex: 1){
+    display: block;
+    flex: @flex;
+}
+
+//.px2rem(@name, @px){
+//        @{name}: @px / 16 * 1rem;
+//}
+
+//清除浮动
+.ks-clear {
+	*zoom: 1;
+	&:after {
+		content: '\20';
+		display: block;
+		height: 0;
+		clear: both;
+	}
+}
+.px2rem(@name, @px){
+		@{name}: @px / 16 * 1rem;
+}
+/**
+* 背景适配
+* @param @src       2x的url
+* @param @src3x     3x的url
+* @param @size-x background
+*/
+
+.bg-img-set(@src, @src3x, @sizeX: 100%) {
+	background: url(@src) no-repeat;
+	background: -webkit-image-set(url(@src) 2x, url(@src3x) 3x) no-repeat;
+	background-size: @sizeX auto;
+	background-position: center;
+}
+/*
+* 定义盒子宽高
+*@params @width 盒子宽
+*@params @height 盒子高
+*/
+.wh(@width, @height) {
+    width: @width;
+    height: @height;
+}
+/* 正方形 */
+.square(@size){
+	width: @size;
+	height: @size;
+}
+/* 三角形 */
+.triangle(@left, @right, @bottom){
+  border-left: @left solid transparent;
+  border-right: @right solid transparent;
+  border-bottom: @bottom solid;
+  transform-origin: @left/(@left+@right)*100% 0;
+}
+/*
+* 定义字体，颜色，对其方式，是否加粗
+*/
+.font(@fz, @color, @align: center, @lh, @weight: normal) {
+    font-size: @fz;
+    color: @color;
+    text-align: @align;
+    line-height: @lh;
+    font-weight: @weight;
+}
+/* flex容器 */
+.flexWrap(@jc: flex-start, @ai: center, @fw: no-wrap, @fd: row) {
+     .display-box;
+    justify-content: @jc;
+    align-items: @ai;
+    flex-wrap: @fw;
+    flex-direction: @fd;
+
+}
+/*定位*/
+.position(@position, @key1:left, @key2:top, @value1, @value2, @zIndex: 1){
+    position: @position;
+    @{key1}:@value1;
+    @{key2}:@value2;
+		z-index: @zIndex;
+}
+/*定位2*/
+.position2(@position, @key1:left, @value1, @key2:top, @value2, @zIndex: 1){
+	position: @position;
+	@{key1}:@value1;
+	@{key2}:@value2;
+	z-index: @zIndex;
+}
+/*全屏*/
+.wholeScreen(@zIndex: 1){
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	z-index: @zIndex;
+}
+ /** 模拟输入光标
+   * @color：光标颜色;
+   * @height : 光标高度;
+   * @width : 光标竖线宽度; 默认1px
+   * @bcColor：光标闪烁消失时颜色（设置为当前元素背景底色即可）; 默认为白色
+  */
+ .cursor-animation(@color,  @height, @width: 1px, @bcColor:#fff){
+    &{
+      position: relative;
+    }
+    &::after {
+            content:'';
+            display: inline-block;
+            width:@width;
+            height:@height;
+            animation: blink 1s infinite steps(1, start);
+            position: absolute;
+            right:0;
+            top:0;
+    }
+    @keyframes blink {
+     0%{
+       background-color: @bcColor;
+     }
+     50% {
+       background-color: @color;
+     }
+     100% {
+       background-color: @bcColor;
+     }
+    }
+}
+
+.iphoneX{
+	padding-top: ~"calc(44px + constant(safe-area-inset-top))";
+	padding-top: ~"calc(44px + env(safe-area-inset-top))";
+}
+
+.iphoneXstatus{
+	@media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+		/* 这代表IPX */
+		/* 目前这种设备像素比 和 尺寸是很“奇葩”、特殊的，基本可以确定是 IPX */
+		height: 34px;
+		//height: constant(safe-area-inset-top);
+		//height: env(safe-area-inset-top);
+
+	}
+}
